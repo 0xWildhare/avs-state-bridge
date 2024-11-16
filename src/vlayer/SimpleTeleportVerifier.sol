@@ -17,13 +17,15 @@ contract SimpleTeleportVerifier is Verifier {
         reward = _nft;
     }
 
-    function claim(Proof calldata, address claimer, uint256 crossChainBalance)
+    function claim(Proof calldata, bool success)
         public
         onlyVerified(prover, SimpleTeleportProver.checkSignature.selector)
     {
+        address claimer = msg.sender;
         require(!claimed[claimer], "Already claimed");
-
-        claimed[claimer] = true;
-        reward.mint(claimer);
+        if (success) {
+            claimed[claimer] = true;
+            reward.mint(claimer);
+        }
     }
 }
