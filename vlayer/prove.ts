@@ -1,7 +1,6 @@
 import { createVlayerClient } from "@vlayer/sdk";
 import proverSpec from "../out/SimpleTeleportProver.sol/SimpleTeleportProver";
 import verifierSpec from "../out/SimpleTeleportVerifier.sol/SimpleTeleportVerifier";
-import whaleBadgeNFTSpec from "../out/WhaleBadgeNFT.sol/WhaleBadgeNFT";
 import easRegistrySpec from "../out/ISchemaRegistry.sol/ISchemaRegistry";
 import resolverSpec from "../out/Resolver.sol/Resolver"; 
 import easSpec from "../out/IEAS.sol/IEAS";
@@ -11,6 +10,34 @@ import {
   getConfig,
   waitForContractDeploy,
 } from "@vlayer/sdk/config";
+import { ethers } from "ethers";
+
+
+const abiCoder = ethers.AbiCoder.defaultAbiCoder()
+
+// const r ={ seal: {
+//   verifierSelector: "0xdeafbeef",
+//   seal: [ "0x0b63755c8d8df5798bd13bd4a9fa8855e140c9a537e720052b6b90719f3615c6", "0x0000000000000000000000000000000000000000000000000000000000000000",
+//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000",
+//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000",
+//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"
+//   ],
+//   mode: 1,
+// },
+// callGuestId: "0xc0f59f76de44b1700c2de89e0eeffbbad523e049b6beef55441f371811f62767",
+// length: 640,
+// callAssumptions: {
+//   functionSelector: "0xa83a117c",
+//   proverContractAddress: "0x5c8ca1cabfe040c3223633daebaa58ff7ed381d7",
+//   settleBlockNumber: 7090767,
+//   settleBlockHash: "0x7eb5b3c9762d276b6da8c33a27a5f88b5d698c41d405b93c36d844b3f3e99e2e",
+// }
+// }
+
+
+
+
+
 
 const config = getConfig();
 const { chain, ethClient, account, proverUrl, confirmations } =
@@ -19,23 +46,24 @@ const vlayer = createVlayerClient({
   url: proverUrl,
 });
 
-const deployWhaleBadgeHash = await ethClient.deployContract({
-  abi: whaleBadgeNFTSpec.abi,
-  bytecode: whaleBadgeNFTSpec.bytecode.object,
-  account,
-});
+// const deployWhaleBadgeHash = await ethClient.deployContract({
+//   abi: whaleBadgeNFTSpec.abi,
+//   bytecode: whaleBadgeNFTSpec.bytecode.object,
+//   account,
+// });
 
-const whaleBadgeNFTAddress = await waitForContractDeploy({
-  hash: deployWhaleBadgeHash,
-});
+// const whaleBadgeNFTAddress = await waitForContractDeploy({
+//   hash: deployWhaleBadgeHash,
+// });
 
 const { prover, verifier } = await deployVlayerContracts({
   proverSpec,
   verifierSpec,
   proverArgs: [],
-  verifierArgs: [whaleBadgeNFTAddress],
+  verifierArgs: [],
 });
 
+console.log("Deploying Resolver...");
 const resolverHash =  await ethClient.deployContract({
   abi: resolverSpec.abi,
   bytecode: resolverSpec.bytecode.object,
@@ -48,13 +76,23 @@ const resolverAddress = await waitForContractDeploy({
 });
 
 console.log("Registering Schema...");
-const schemaUID = await ethClient.writeContract({
+const schemaHash = await ethClient.writeContract({
   address: '0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0',
   abi: easRegistrySpec.abi,
   functionName: "register",
   args: ["", resolverAddress, true],
   account,
 });
+
+const schemaReceipt = await ethClient.waitForTransactionReceipt({
+  hash: schemaHash,
+  confirmations,
+  retryCount: 60,
+  retryDelay: 1000,
+});
+
+const schemaUID = schemaReceipt.logs[0].topics[1];
+
 console.log("Registered as: ", schemaUID);
 
 console.log("Proving...")
@@ -102,14 +140,30 @@ console.log("Verifying...");
 //   args: result,
 //   account,
 // });
+console.log(result);
+const r = result[0];
 
-const request = [???}
+const encoded = abiCoder.encode(
+  ['bytes4', 'bytes32[8]', 'uint8', 'bytes32', 'uint256', 'address', 'bytes4', 'uint256', 'bytes32'],
+   [r.seal.verifierSelector, r.seal.seal, r.seal.mode, r.callGuestId, r.length, r.callAssumptions.proverContractAddress, r.callAssumptions.functionSelector, r.callAssumptions.settleBlockNumber, r.callAssumptions.settleBlockHash]);
+
+console.log(encoded);
 
 const verificationHash = await ethClient.writeContract({
   address: '0xC2679fBD37d54388Ce493F1DB75320D236e1815e',
   abi: easSpec.abi,
   functionName: "attest",
-  args: request,
+  args: [[
+    schemaUID,
+    [
+      '0x0E913061acC4D14c5a726e18edAaB3FACDA3867b',
+      0,
+      false,
+      "0x0000000000000000000000000000000000000000000000000000000000000000",
+      encoded,
+      0
+    ]
+  ]],
   account,
 });
 

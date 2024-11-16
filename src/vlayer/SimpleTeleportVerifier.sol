@@ -34,7 +34,6 @@ import {Verifier} from "vlayer-0.1.0/Verifier.sol";
 
 contract SimpleTeleportVerifier is Verifier {
     address public prover;
-    WhaleBadgeNFT public reward;
 
     constructor(address _prover) {
         prover = _prover;
