@@ -27,7 +27,7 @@ contract SimpleTeleportProver is Prover {
         registryCoordinator = IRegistryCoordinator(0xeCd099fA5048c3738a5544347D8cBc8076E76494);
     }
 
-    function checkSignature(BLSSigSchema memory schema) public returns (Proof memory, bool success) {
+    function checkSignature(BLSSigSchema memory schema) public returns (Proof memory) {
         setChain(1, 21199991);
         BN254.G1Point memory apk = BN254.G1Point(0, 0);
         for (uint256 i = 0; i < schema.nonSignerPubkeys.length; i++) {
@@ -49,7 +49,11 @@ contract SimpleTeleportProver is Prover {
             trySignatureAndApkVerification(schema.msgPoint, apk, schema.apkG2, schema.sigma);
         assert(pairingSuccessful && siganatureIsValid);
 
-        return (proof(), pairingSuccessful && siganatureIsValid);
+        return (proof());function onAttest(Attestation calldata attestation, uint256 /*value*/ ) internal view override returns (bool) {
+        require(msg.sender == address(_eas), "OpacityResolver: Only EAS can call this function");
+        Proof memory proof = abi.decode(attestation, (Proof));
+        return verify(proof);
+    }
     }
 
     function trySignatureAndApkVerification(
