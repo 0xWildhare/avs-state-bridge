@@ -2,6 +2,8 @@ import { createVlayerClient } from "@vlayer/sdk";
 import proverSpec from "../out/SimpleTeleportProver.sol/SimpleTeleportProver";
 import verifierSpec from "../out/SimpleTeleportVerifier.sol/SimpleTeleportVerifier";
 import whaleBadgeNFTSpec from "../out/WhaleBadgeNFT.sol/WhaleBadgeNFT";
+import easRegistrySpec from "../out/ISchemaRegistry.sol/ISchemaRegistry";
+import resolverSpec from "../out/Resolver.sol/Resolver"; 
 import {
   createContext,
   deployVlayerContracts,
@@ -33,8 +35,30 @@ const { prover, verifier } = await deployVlayerContracts({
   verifierArgs: [whaleBadgeNFTAddress],
 });
 
+const resolverHash =  await ethClient.deployContract({
+  abi: resolverSpec.abi,
+  bytecode: resolverSpec.bytecode.object,
+  args: [verifier, '0xC2679fBD37d54388Ce493F1DB75320D236e1815e'],
+  account,
+});
+
+const resolverAddress = await waitForContractDeploy({
+  hash: resolverHash,
+});
+
+console.log("Registering Schema...");
+const schemaUID = await ethClient.writeContract({
+  address: '0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0',
+  abi: easRegistrySpec.abi,
+  functionName: "register",
+  args: ["", resolverAddress, true],
+  account,
+});
+console.log("Registered as: ", schemaUID);
+
 console.log("Proving...")
 
+// hardcoding for example - this would be an input.
 let arg =[
   [17203420365943240390740826592467537458989639846558524000889457412521937796943n, 20561686838620202016451046017383091581583709721142686192698930873609039143571n],
   [15218273893477907224949174538367281660944277992648268390344261226874337989878n, 18738259713669570948846667401642191234102945152021517526976327829897757302853n],
@@ -70,10 +94,18 @@ const result = await vlayer.waitForProvingResult(proofHash);
 console.log("Proof:", result[0]);
 console.log("Verifying...");
 
+// const verificationHash = await ethClient.writeContract({
+//   address: verifier,
+//   abi: verifierSpec.abi,
+//   functionName: "verify",
+//   args: result,
+//   account,
+// });
+
 const verificationHash = await ethClient.writeContract({
-  address: verifier,
+  address: '0xC2679fBD37d54388Ce493F1DB75320D236e1815e',
   abi: verifierSpec.abi,
-  functionName: "claim",
+  functionName: "verify",
   args: result,
   account,
 });
@@ -86,3 +118,5 @@ const receipt = await ethClient.waitForTransactionReceipt({
 });
 
 console.log(`Verification result: ${receipt.status}`);
+
+

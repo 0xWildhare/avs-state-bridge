@@ -6,6 +6,12 @@ checksum = "c256cbf6f5f38d3b65c7528bbffb530d0bdb818a20c9d5b61235a829202d7df7"
 integrity = "0dabb06b7ce9a5fec6e97a174c230829260e5843d4f7e22931c51385f4ede155"
 
 [[dependencies]]
+name = "eas"
+version = "1.0.0"
+git = "git@github.com:ethereum-attestation-service/eas-contracts.git"
+rev = "558250dae4cb434859b1ac3b6d32833c6448be21"
+
+[[dependencies]]
 name = "eigenlayer-middleware"
 version = "1.0.0"
 git = "git@github.com:Layr-Labs/eigenlayer-middleware.git"

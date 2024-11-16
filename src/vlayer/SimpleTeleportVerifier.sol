@@ -25,41 +25,27 @@
 //     }
 // }
 
-// SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.23;
 
 import {SimpleTeleportProver} from "./SimpleTeleportProver.sol";
-import {IEAS, Attestation} from "@eas-contracts/IEAS.sol";
-import {SchemaResolver} from "@eas-contracts/resolver/SchemaResolver.sol";
 
 import {Proof} from "vlayer-0.1.0/Proof.sol";
 import {Verifier} from "vlayer-0.1.0/Verifier.sol";
 
 contract SimpleTeleportVerifier is Verifier {
     address public prover;
+    WhaleBadgeNFT public reward;
 
-    constructor(address _prover, address easAddrs) SchemaResolver(IEAS(easAddrs)) {
+    constructor(address _prover) {
         prover = _prover;
     }
 
-    function verify(Proof calldata)
+    function verify(Proof memory)
         public
+        view
         onlyVerified(prover, SimpleTeleportProver.checkSignature.selector)
         returns (bool)
     {
         return true;
-    }
-
-    function onAttest(Attestation calldata attestation, uint256 /*value*/ ) internal view override returns (bool) {
-        require(msg.sender == address(_eas), "OpacityResolver: Only EAS can call this function");
-        Proof memory proof = abi.decode(attestation, (Proof));
-        return verify(proof);
-    }
-
-    function onRevoke(Attestation calldata, /*attestation*/ uint256 /*value*/ ) internal view override returns (bool) {
-        require(msg.sender == address(_eas), "OpacityResolver: Only EAS can call this function");
-
-        // Does not support revocation.
-        return false;
     }
 }
