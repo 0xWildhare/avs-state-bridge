@@ -16,7 +16,7 @@ contract SimpleTeleportProver is Prover {
 
     constructor() {
         tokens.push(Erc20Token(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, 1, 20683110)); // mainnet
-        tokens.push(Erc20Token(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 8453, 19367633)); // base
+        tokens.push(Erc20Token(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 8453, 22476614)); // base
         tokens.push(Erc20Token(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85, 10, 124962954)); // optimism
     }
 
