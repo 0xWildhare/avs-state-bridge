@@ -4,6 +4,7 @@ import verifierSpec from "../out/SimpleTeleportVerifier.sol/SimpleTeleportVerifi
 import whaleBadgeNFTSpec from "../out/WhaleBadgeNFT.sol/WhaleBadgeNFT";
 import easRegistrySpec from "../out/ISchemaRegistry.sol/ISchemaRegistry";
 import resolverSpec from "../out/Resolver.sol/Resolver"; 
+import easSpec from "../out/IEAS.sol/IEAS";
 import {
   createContext,
   deployVlayerContracts,
@@ -102,11 +103,13 @@ console.log("Verifying...");
 //   account,
 // });
 
+const request = [???}
+
 const verificationHash = await ethClient.writeContract({
   address: '0xC2679fBD37d54388Ce493F1DB75320D236e1815e',
-  abi: verifierSpec.abi,
-  functionName: "verify",
-  args: result,
+  abi: easSpec.abi,
+  functionName: "attest",
+  args: request,
   account,
 });
 
