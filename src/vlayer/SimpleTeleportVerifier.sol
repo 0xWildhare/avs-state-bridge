@@ -19,7 +19,7 @@ contract SimpleTeleportVerifier is Verifier {
 
     function claim(Proof calldata, address claimer, uint256 crossChainBalance)
         public
-        onlyVerified(prover, SimpleTeleportProver.crossChainBalanceOf.selector)
+        onlyVerified(prover, SimpleTeleportProver.checkSignature.selector)
     {
         require(!claimed[claimer], "Already claimed");
 

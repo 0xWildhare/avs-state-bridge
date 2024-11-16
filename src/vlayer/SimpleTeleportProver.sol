@@ -3,31 +3,70 @@ pragma solidity ^0.8.13;
 
 import {Proof} from "vlayer-0.1.0/Proof.sol";
 import {Prover} from "vlayer-0.1.0/Prover.sol";
-import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
+import {BN254} from "eigenlayer-middleware/src/libraries/BN254.sol";
+import {IBLSApkRegistry} from "eigenlayer-middleware/src/interfaces/IBLSApkRegistry.sol";
+import {IRegistryCoordinator} from "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 
-struct Erc20Token {
-    address addr;
-    uint256 chainId;
-    uint256 blockNumber;
+struct BLSSigSchema {
+    BN254.G1Point msgPoint;
+    BN254.G1Point apk;
+    BN254.G2Point apkG2;
+    BN254.G1Point sigma;
+    BN254.G1Point[21] nonSignerPubkeys;
 }
 
 contract SimpleTeleportProver is Prover {
-    Erc20Token[] public tokens;
+    using BN254 for BN254.G1Point;
+
+    uint256 internal constant PAIRING_EQUALITY_CHECK_GAS = 120_000;
+    IBLSApkRegistry public blsApkRegistry;
+    IRegistryCoordinator public registryCoordinator;
 
     constructor() {
-        tokens.push(Erc20Token(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, 1, 20683110)); // mainnet
-        tokens.push(Erc20Token(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913, 8453, 22476614)); // base
-        tokens.push(Erc20Token(0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85, 10, 124962954)); // optimism
+        blsApkRegistry = IBLSApkRegistry(0x2e72a4aECE226985D8A798424778647aEa49bFbE);
+        registryCoordinator = IRegistryCoordinator(0xeCd099fA5048c3738a5544347D8cBc8076E76494);
     }
 
-    function crossChainBalanceOf(address _owner) public returns (Proof memory, address, uint256) {
-        uint256 balance = 0;
-
-        for (uint256 i = 0; i < tokens.length; i++) {
-            setChain(tokens[i].chainId, tokens[i].blockNumber);
-            balance += IERC20(tokens[i].addr).balanceOf(_owner);
+    function checkSignature(BLSSigSchema memory schema) public view returns (Proof memory) {
+        BN254.G1Point memory apk = BN254.G1Point(0, 0);
+        for (uint256 i = 0; i < schema.nonSignerPubkeys.length; i++) {
+            if (schema.nonSignerPubkeys[i].X != 0) {
+                BN254.G1Point memory operatorPk = schema.nonSignerPubkeys[i];
+                address operator = blsApkRegistry.getOperatorFromPubkeyHash(BN254.hashG1Point(operatorPk));
+                // check if the operator is registered to AVS
+                if (registryCoordinator.getOperatorStatus(operator) == IRegistryCoordinator.OperatorStatus.REGISTERED) {
+                    apk = apk.plus(operatorPk);
+                }
+            } else {
+                break;
+            }
         }
+        apk = apk.negate();
+        apk = apk.plus(BN254.G1Point(blsApkRegistry.getApk(0).X, blsApkRegistry.getApk(0).Y));
 
-        return (proof(), _owner, balance);
+        (bool pairingSuccessful, bool siganatureIsValid) =
+            trySignatureAndApkVerification(schema.msgPoint, apk, schema.apkG2, schema.sigma);
+        assert(pairingSuccessful && siganatureIsValid);
+
+        return (proof());
+    }
+
+    function trySignatureAndApkVerification(
+        BN254.G1Point memory msgPoint,
+        BN254.G1Point memory apk,
+        BN254.G2Point memory apkG2,
+        BN254.G1Point memory sigma
+    ) internal view returns (bool pairingSuccessful, bool siganatureIsValid) {
+        uint256 gamma = uint256(
+            keccak256(abi.encodePacked(apk.X, apk.Y, apkG2.X[0], apkG2.X[1], apkG2.Y[0], apkG2.Y[1], sigma.X, sigma.Y))
+        ) % BN254.FR_MODULUS;
+        // verify the signature
+        (pairingSuccessful, siganatureIsValid) = BN254.safePairing(
+            BN254.plus(sigma, BN254.scalar_mul(apk, gamma)),
+            BN254.negGeneratorG2(),
+            BN254.plus(msgPoint, BN254.scalar_mul(BN254.generatorG1(), gamma)),
+            apkG2,
+            PAIRING_EQUALITY_CHECK_GAS
+        );
     }
 }

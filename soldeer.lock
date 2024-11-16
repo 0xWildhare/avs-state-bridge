@@ -6,6 +6,12 @@ checksum = "c256cbf6f5f38d3b65c7528bbffb530d0bdb818a20c9d5b61235a829202d7df7"
 integrity = "0dabb06b7ce9a5fec6e97a174c230829260e5843d4f7e22931c51385f4ede155"
 
 [[dependencies]]
+name = "eigenlayer-middleware"
+version = "1.0.0"
+git = "git@github.com:Layr-Labs/eigenlayer-middleware.git"
+rev = "7d49b5181b09198ed275783453aa082bb3766990"
+
+[[dependencies]]
 name = "forge-std"
 version = "1.9.2"
 url = "https://soldeer-revisions.s3.amazonaws.com/forge-std/1_9_2_06-08-2024_17:31:25_forge-std-1.9.2.zip"

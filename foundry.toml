@@ -9,6 +9,7 @@ fs_permissions = [{ access = "read", path = "./testdata"}]
 forge-std = "1.9.2"
 risc0-ethereum = { version = "1.0.0", url = "https://github.com/vlayer-xyz/risc0-ethereum/releases/download/v1.0.0-soldeer-no-remappings/contracts.zip" }
 vlayer = { version = "0.1.0-nightly-20241115-70dfc11" }
+eigenlayer-middleware = { version = "1.0.0", git = "git@github.com:Layr-Labs/eigenlayer-middleware.git", rev = "7d49b5181b09198ed275783453aa082bb3766990" }
 
 [soldeer]
 # whether soldeer manages remappings
