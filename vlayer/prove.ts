@@ -15,30 +15,6 @@ import { ethers } from "ethers";
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder()
 
-// const r ={ seal: {
-//   verifierSelector: "0xdeafbeef",
-//   seal: [ "0x0b63755c8d8df5798bd13bd4a9fa8855e140c9a537e720052b6b90719f3615c6", "0x0000000000000000000000000000000000000000000000000000000000000000",
-//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000",
-//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000",
-//     "0x0000000000000000000000000000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000000000000000000000000000"
-//   ],
-//   mode: 1,
-// },
-// callGuestId: "0xc0f59f76de44b1700c2de89e0eeffbbad523e049b6beef55441f371811f62767",
-// length: 640,
-// callAssumptions: {
-//   functionSelector: "0xa83a117c",
-//   proverContractAddress: "0x5c8ca1cabfe040c3223633daebaa58ff7ed381d7",
-//   settleBlockNumber: 7090767,
-//   settleBlockHash: "0x7eb5b3c9762d276b6da8c33a27a5f88b5d698c41d405b93c36d844b3f3e99e2e",
-// }
-// }
-
-
-
-
-
-
 const config = getConfig();
 const { chain, ethClient, account, proverUrl, confirmations } =
   await createContext(config);
@@ -46,15 +22,6 @@ const vlayer = createVlayerClient({
   url: proverUrl,
 });
 
-// const deployWhaleBadgeHash = await ethClient.deployContract({
-//   abi: whaleBadgeNFTSpec.abi,
-//   bytecode: whaleBadgeNFTSpec.bytecode.object,
-//   account,
-// });
-
-// const whaleBadgeNFTAddress = await waitForContractDeploy({
-//   hash: deployWhaleBadgeHash,
-// });
 
 const { prover, verifier } = await deployVlayerContracts({
   proverSpec,
@@ -133,13 +100,6 @@ const result = await vlayer.waitForProvingResult(proofHash);
 console.log("Proof:", result[0]);
 console.log("Verifying...");
 
-// const verificationHash = await ethClient.writeContract({
-//   address: verifier,
-//   abi: verifierSpec.abi,
-//   functionName: "verify",
-//   args: result,
-//   account,
-// });
 console.log(result);
 const r = result[0];
 
