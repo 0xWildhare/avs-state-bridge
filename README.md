@@ -1,3 +1,35 @@
+## Some of the required workarounds and/or packages added :
+
+bc one dev was running Ubuntu 22.04 instead of 24.04:
+
+```shell
+mkdir vlayer && curl https://vlayer-releases.s3.eu-north-1.amazonaws.com/latest/nightly-linux-amd64-musl.tar.gz -L | tar -xzC vlayer/
+```
+
+to correctly add the vlayer sdk:
+
+```shell
+forge soldeer install vlayer~0.1.0-nightly-20241115-70dfc11
+```
+
+vlayer/package.json line 7:
+
+```shell
+"@vlayer/sdk": "0.1.0-nightly-20241115-70dfc11",
+```
+
+for eigenlayer middleware contracts:
+
+```shell
+forge soldeer install eigenlayer-middleware~1.0.0 git@github.com:Layr-Labs/eigenlayer-middleware.git
+```
+
+for EAS contracts:
+
+```shell
+forge soldeer install eas~1.0.0 git@github.com:ethereum-attestation-service/eas-contracts.git
+```
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
@@ -63,15 +95,4 @@ $ cast <subcommand>
 $ forge --help
 $ anvil --help
 $ cast --help
-```
-
-### Please don't steal my api key just because I'm being lazy rn
-
-```shell
-vlayer serve \
-  --rpc-url '31337:http://localhost:8545' \
-  --rpc-url '11155111:https://sepolia.infura.io/v3/16d5e43545934be1a450a1538afbd007' \
-  --rpc-url '1:https://mainnet.infura.io/v3/16d5e43545934be1a450a1538afbd007' \
-  --rpc-url '8453:https://base-mainnet.infura.io/v3/16d5e43545934be1a450a1538afbd007' \
-  --rpc-url '10:https://optimism-mainnet.infura.io/v3/16d5e43545934be1a450a1538afbd007'
 ```
